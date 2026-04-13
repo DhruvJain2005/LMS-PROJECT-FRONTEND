@@ -1,2 +1,4 @@
 # LMS-PROJECT-FRONTEND
-Here we build  a online learning management system 
+HERE WE BUILD A FRONTEND OF ONLINE LEARNING MANAGEMENT SYSTEM .
+WE USE react in FRONTEND
+
