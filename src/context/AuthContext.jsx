@@ -2,7 +2,7 @@ import { createContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
 // Backend URL from env
-const API = import.meta.env.VITE_BACKEND_URL;
+const API = import.meta.env.VITE_BACKEND_URL || "https://lms-backend-3j0x.onrender.com";
 
 // Create axios instance
 const axiosInstance = axios.create({
