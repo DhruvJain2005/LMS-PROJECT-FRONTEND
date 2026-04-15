@@ -1,56 +1,82 @@
-import { createContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import { createContext, useState, useEffect } from "react";
+import axios from "axios";
 
-// Backend URL from env
-const API = import.meta.env.VITE_BACKEND_URL || "https://lms-backend-3j0x.onrender.com";
+// ✅ Backend URL (safe fallback included)
+const API =
+  import.meta.env.VITE_BACKEND_URL ||
+  "https://lms-backend-3j0x.onrender.com";
 
-// Create axios instance
+// ✅ Axios instance
 const axiosInstance = axios.create({
   baseURL: API,
 });
 
-// Create context
+// ✅ Create Context
 export const AuthContext = createContext();
 
-// Provider
+// ✅ Provider Component
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Load user from localStorage on app start
+  // ✅ Load user from localStorage on app start
   useEffect(() => {
-    const userInfo = localStorage.getItem('userInfo');
-    if (userInfo) {
-      setUser(JSON.parse(userInfo));
+    try {
+      const userInfo = localStorage.getItem("userInfo");
+
+      if (userInfo) {
+        const parsedUser = JSON.parse(userInfo);
+        setUser(parsedUser);
+
+        // ✅ Attach token automatically (if exists)
+        if (parsedUser?.token) {
+          axiosInstance.defaults.headers.common[
+            "Authorization"
+          ] = `Bearer ${parsedUser.token}`;
+        }
+      }
+    } catch (error) {
+      console.error("Error parsing userInfo:", error);
+      localStorage.removeItem("userInfo");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
-  // LOGIN
+  // ✅ LOGIN
   const login = async (email, password) => {
     try {
-      const { data } = await axiosInstance.post('/api/auth/login', {
+      const { data } = await axiosInstance.post("/api/auth/login", {
         email,
         password,
       });
 
+      // Save user
       setUser(data);
-      localStorage.setItem('userInfo', JSON.stringify(data));
+      localStorage.setItem("userInfo", JSON.stringify(data));
+
+      // ✅ Set token globally
+      if (data?.token) {
+        axiosInstance.defaults.headers.common[
+          "Authorization"
+        ] = `Bearer ${data.token}`;
+      }
 
       return { success: true };
     } catch (error) {
+      console.error("Login error:", error);
       return {
         success: false,
         message:
-          error.response?.data?.message || 'Login failed',
+          error.response?.data?.message || "Login failed",
       };
     }
   };
 
-  // REGISTER
+  // ✅ REGISTER
   const register = async (name, email, password, role) => {
     try {
-      const { data } = await axiosInstance.post('/api/auth/register', {
+      const { data } = await axiosInstance.post("/api/auth/register", {
         name,
         email,
         password,
@@ -58,22 +84,34 @@ export const AuthProvider = ({ children }) => {
       });
 
       setUser(data);
-      localStorage.setItem('userInfo', JSON.stringify(data));
+      localStorage.setItem("userInfo", JSON.stringify(data));
+
+      // ✅ Set token globally
+      if (data?.token) {
+        axiosInstance.defaults.headers.common[
+          "Authorization"
+        ] = `Bearer ${data.token}`;
+      }
 
       return { success: true };
     } catch (error) {
+      console.error("Register error:", error);
       return {
         success: false,
         message:
-          error.response?.data?.message || 'Registration failed',
+          error.response?.data?.message ||
+          "Registration failed",
       };
     }
   };
 
-  // LOGOUT
+  // ✅ LOGOUT
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('userInfo');
+    localStorage.removeItem("userInfo");
+
+    // Remove token
+    delete axiosInstance.defaults.headers.common["Authorization"];
   };
 
   return (
@@ -89,4 +127,4 @@ export const AuthProvider = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
-};8
+};
