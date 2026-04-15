@@ -1,7 +1,7 @@
 import { createContext, useState, useEffect } from "react";
 import axios from "axios";
 
-// ✅ Backend URL (safe fallback included)
+// ✅ Backend URL (safe fallback)
 const API =
   import.meta.env.VITE_BACKEND_URL ||
   "https://lms-backend-3j0x.onrender.com";
@@ -14,12 +14,12 @@ const axiosInstance = axios.create({
 // ✅ Create Context
 export const AuthContext = createContext();
 
-// ✅ Provider Component
+// ✅ Provider
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Load user from localStorage on app start
+  // ✅ Load user from localStorage
   useEffect(() => {
     try {
       const userInfo = localStorage.getItem("userInfo");
@@ -28,15 +28,15 @@ export const AuthProvider = ({ children }) => {
         const parsedUser = JSON.parse(userInfo);
         setUser(parsedUser);
 
-        // ✅ Attach token automatically (if exists)
+        // ✅ Attach token globally (if exists)
         if (parsedUser?.token) {
           axiosInstance.defaults.headers.common[
             "Authorization"
           ] = `Bearer ${parsedUser.token}`;
         }
       }
-    } catch (error) {
-      console.error("Error parsing userInfo:", error);
+    } catch (err) {
+      console.error("LocalStorage error:", err);
       localStorage.removeItem("userInfo");
     } finally {
       setLoading(false);
@@ -51,7 +51,6 @@ export const AuthProvider = ({ children }) => {
         password,
       });
 
-      // Save user
       setUser(data);
       localStorage.setItem("userInfo", JSON.stringify(data));
 
@@ -110,7 +109,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     localStorage.removeItem("userInfo");
 
-    // Remove token
+    // ✅ Remove token
     delete axiosInstance.defaults.headers.common["Authorization"];
   };
 
